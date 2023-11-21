@@ -78,19 +78,19 @@ export default class OrderRepository {
 
   async findAll(): Promise<Order[]> {
     let orderModels: OrderModel[];
+    let orders: Order[] = [];
 
     try {
       const orderModels = await OrderModel.findAll( { include: { model: OrderItemModel, as: "items" } });  
+      orders = orderModels.map((orderModel) => {
+        const orderItems = orderModel.items.map((item) => {
+          return new OrderItem(item.id, item.name, item.price, item.product_id, item.quantity);
+        });
+        return new Order(orderModel.id, orderModel.customer_id, orderItems);
+      });
     } catch (error) {
       throw new Error("Orders not found");
     }
-  
-    const orders = orderModels.map((orderModel) => {
-      const orderItems = orderModel.items.map((item) => {
-        return new OrderItem(item.id, item.name, item.price, item.product_id, item.quantity);
-      });
-      return new Order(orderModel.id, orderModel.customer_id, orderItems);
-    });
 
     return orders;
   }
